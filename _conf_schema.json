@@ -6,7 +6,9 @@
     "type": "object",
     "items": {
       "detector": {"description": "检测模型", "type": "string",
-                   "options": ["person_detect_v1.1_n"], "default": "person_detect_v1.1_n"},
+                   "options": ["person_detect_v1.1_n", "halfbody_detect_v1.0_n"],
+                   "default": "person_detect_v1.1_n",
+                   "hint": "halfbody 检测上半身区域，适合半身/胸像输入；切换后建议把 detect.det_conf 调为 0.512"},
       "classifier": {"description": "角色识别模型", "type": "string",
                      "options": ["wuwa_mnv4l_448_int8", "wuwa_mnv4s_384_fp32"],
                      "default": "wuwa_mnv4l_448_int8",

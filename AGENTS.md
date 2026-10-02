@@ -111,7 +111,8 @@ on_llm_request(event, req)
 
 | key | kind | 文件（相对仓库根） | 说明 |
 |---|---|---|---|
-| `person_detect_v1.1_n` | detector | `person_detect_v1.1_n/model.onnx` | deepghs/anime_person_detection，MIT；同目录有 `labels.json` |
+| `person_detect_v1.1_n` | detector | `person_detect_v1.1_n/model.onnx` | deepghs/anime_person_detection，MIT；单类 `person`，F1=0.85 对应阈值 0.327 |
+| `halfbody_detect_v1.0_n` | detector | `halfbody_detect_v1.0_n/model.onnx` | deepghs/anime_halfbody_detection，**OpenRAIL**；单类 `halfbody`，F1=0.94 对应阈值 0.512（`threshold.json`）；YOLOv8n 同规格（3.01M 参数），检测上半身区域，适合半身/胸像输入 |
 | `wuwa_mnv4l_448_int8`（默认） | classifier | `latest/mnv4l_448/wuwa_playable_character_latest_mnv4l_448_int8.onnx` + `…/prototypes_int8.npz` | 精度优先，33.1 MB，≈100 ms/图（1 线程） |
 | `wuwa_mnv4s_384_fp32` | classifier | `latest/mnv4s_384/wuwa_playable_character_latest_mnv4s_384.onnx` + `…/prototypes.npz` | 速度/体积优先，11.3 MB，≈11 ms/图（1 线程） |
 
@@ -142,13 +143,13 @@ on_llm_request(event, req)
 - 推理并发：全局 `asyncio.Semaphore(max_concurrency)`（默认 1），推理在专用单线程/小线程池（`run_in_executor`）执行；ORT 推理释放 GIL，不会卡住事件循环。
 - 不全局调用 `cv2.setNumThreads`（进程级，会影响其他插件）；预处理尺寸小，默认即可。
 
-### 6.4 `detector.py`（`person_detect_v1.1_n`）
-- 模型：Ultralytics YOLOv8 导出 ONNX，单类 `person`。**加载时读取输入名/形状与输出形状并断言**，不要硬编码：
+### 6.4 `detector.py`（`person_detect_v1.1_n` / `halfbody_detect_v1.0_n`）
+- 模型：Ultralytics YOLOv8 导出 ONNX，单类（`person` / `halfbody`）。**加载时读取输入名/形状与输出形状并断言**，不要硬编码：
   - 输入 `NCHW float32`，RGB，`/255`；若输入为动态尺寸，使用配置 `det_imgsz`（默认 640，可降到 480/416 换速度）。
   - 常见输出 `[1, 4+nc, N]`（`nc=1` 时 `[1,5,N]`，需转置为 `[N,5]`，前 4 列为中心点 `xywh`）；若检测到 end2end `[1,N,6]` 形态则走另一分支。
 - 预处理：`cv2` letterbox（保持比例、灰边 114、记录 `scale/pad`）→ `cv2.dnn.blobFromImage` 生成 blob（`swapRB=True`），避免多余拷贝。
 - 后处理：置信度过滤 → `xywh→xyxy` → 去 letterbox 还原到原图坐标并裁到图内 → `cv2.dnn.NMSBoxes`（IoU 默认 0.5）→ 按置信度取前 `max_persons`（默认 8）。
-- 默认 `det_conf=0.327`（已核实：HF `deepghs/anime_person_detection` 仓库 `person_detect_v1.1_n/threshold.json` 中 F1=0.85 对应阈值 0.327，2026-10-02 与作者确认采用）。
+- 默认 `det_conf=0.327`（已核实：HF `deepghs/anime_person_detection` 仓库 `person_detect_v1.1_n/threshold.json` 中 F1=0.85 对应阈值 0.327，2026-10-02 与作者确认采用）。**切换为 `halfbody_detect_v1.0_n` 时应同步把 `det_conf` 调到 0.512**（该模型 `threshold.json` 的 F1=0.94 最优值）；`det_conf` 是全局配置，不做按模型联动。
 - 过滤过小框（短边 < `min_box_px`，默认 24）和极端长宽比，减少无意义识别。
 
 ### 6.4.1 `classifier.py`（`wuwa_playable_character_identifier`）
@@ -258,7 +259,9 @@ pred      = None if unknown else head_top   # 非 unknown 时取分类头 argmax
     "type": "object",
     "items": {
       "detector": {"description": "检测模型", "type": "string",
-                   "options": ["person_detect_v1.1_n"], "default": "person_detect_v1.1_n"},
+                   "options": ["person_detect_v1.1_n", "halfbody_detect_v1.0_n"],
+                   "default": "person_detect_v1.1_n",
+                   "hint": "halfbody 检测上半身区域，适合半身/胸像输入；切换后建议把 detect.det_conf 调为 0.512"},
       "classifier": {"description": "角色识别模型", "type": "string",
                      "options": ["wuwa_mnv4l_448_int8", "wuwa_mnv4s_384_fp32"],
                      "default": "wuwa_mnv4l_448_int8",
@@ -384,7 +387,7 @@ pred      = None if unknown else head_top   # 非 unknown 时取分类头 argmax
 
 - `metadata.yaml`：`name: astrbot_plugin_char_annotate`、`display_name`、`desc`、`short_desc`、`version`、`author`、`repo`、`astrbot_version: ">=4.24,<5"`。插件名全小写、无空格、以 `astrbot_plugin_` 开头。
 - `requirements.txt`：`onnxruntime`、`opencv-python-headless`、`numpy`（给出下限版本，避免 numpy 2 与旧 ORT 不兼容）。
-- README：功能、截图（标注图示例）、配置说明、资源占用实测、致谢，并**明确模型许可**：检测模型 `deepghs/anime_person_detection` 为 MIT；分类模型 `ABCwewe/wuwa_playable_character_identifier` 权重为 **CC BY-NC 4.0（仅限研究与个人用途，禁止商用）**；《鸣潮》及角色版权归 KURO GAMES，模型为非官方粉丝项目。插件不分发权重（运行时下载）。
+- README：功能、截图（标注图示例）、配置说明、资源占用实测、致谢，并**明确模型许可**：检测模型 `deepghs/anime_person_detection` 为 MIT，`deepghs/anime_halfbody_detection` 为 **OpenRAIL**；分类模型 `ABCwewe/wuwa_playable_character_identifier` 权重为 **CC BY-NC 4.0（仅限研究与个人用途，禁止商用）**；《鸣潮》及角色版权归 KURO GAMES，模型为非官方粉丝项目。插件不分发权重（运行时下载）。
 - 向 AstrBot 插件市场提交（plugins.astrbot.app 的 `+` 按钮 → 提交到 GitHub Issue）。
 
 ## 13. 待作者补充

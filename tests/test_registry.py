@@ -19,13 +19,24 @@ def registry():
 
 
 def test_load_real_registry(registry):
-    assert len(registry.specs) == 3
+    # 按已知条目结构断言，不钉死总数（新增模型条目不应破坏本测试）
+    assert set(registry.specs) == {
+        "person_detect_v1.1_n",
+        "halfbody_detect_v1.0_n",
+        "wuwa_mnv4l_448_int8",
+        "wuwa_mnv4s_384_fp32",
+    }
     det = registry.detector("person_detect_v1.1_n")
     assert det.kind == "detector"
+    assert det.repo_id == "deepghs/anime_person_detection"
     assert det.ref == "main"
     assert "model" in det.files
     assert det.display_names is None
     assert det.scope_note == ""
+    hb = registry.detector("halfbody_detect_v1.0_n")
+    assert hb.kind == "detector"
+    assert hb.repo_id == "deepghs/anime_halfbody_detection"
+    assert hb.files["model"] == "halfbody_detect_v1.0_n/model.onnx"
     for key in ("wuwa_mnv4l_448_int8", "wuwa_mnv4s_384_fp32"):
         spec = registry.classifier(key)
         assert spec.kind == "classifier"

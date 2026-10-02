@@ -9,6 +9,16 @@
     "preprocess": "yolo_letterbox",
     "scope_note": ""
   },
+  "halfbody_detect_v1.0_n": {
+    "kind": "detector",
+    "repo_id": "deepghs/anime_halfbody_detection",
+    "ref": "main",
+    "files": {
+      "model": "halfbody_detect_v1.0_n/model.onnx"
+    },
+    "preprocess": "yolo_letterbox",
+    "scope_note": ""
+  },
   "wuwa_mnv4l_448_int8": {
     "kind": "classifier",
     "repo_id": "ABCwewe/wuwa_playable_character_identifier",

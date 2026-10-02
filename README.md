@@ -4,7 +4,7 @@ AstrBot 插件：在 LLM 请求发出前，对消息中的图片做**二次元�
 
 ## 功能
 
-1. **检测**：`deepghs/anime_person_detection`（`person_detect_v1.1_n`，YOLOv8-nano）检测图中任意二次元人物。
+1. **检测**：可选两种 YOLOv8n 检测器（默认全身）：`deepghs/anime_person_detection` 的 `person_detect_v1.1_n`（全身，F1 0.85 @ 0.327，MIT）与 `deepghs/anime_halfbody_detection` 的 `halfbody_detect_v1.0_n`（上半身，F1 0.94 @ 0.512，OpenRAIL，适合半身/胸像输入）。
 2. **识别**：作者自训练的 `ABCwewe/wuwa_playable_character_identifier`（鸣潮 57 个可操控角色，MobileNetV4，双输出 embedding+logits，配套原型库与三道拒识闸），对每个检测框裁剪分类。
 3. **标注**：OpenCV 画彩色框 + 编号（可选中文名），已识别角色彩色框，未识别灰色框。
 4. **注入**：用标注图替换原图（仅替换含已识别角色的图），并追加文字说明（角色名 ↔ 框颜色/编号/置信度）。
@@ -15,7 +15,7 @@ AstrBot 插件：在 LLM 请求发出前，对消息中的图片做**二次元�
 
 ## 模型许可与声明
 
-- 检测模型 [`deepghs/anime_person_detection`](https://huggingface.co/deepghs/anime_person_detection)：**MIT License**。
+- 检测模型 [`deepghs/anime_person_detection`](https://huggingface.co/deepghs/anime_person_detection)：**MIT License**；[`deepghs/anime_halfbody_detection`](https://huggingface.co/deepghs/anime_halfbody_detection)：**OpenRAIL**。
 - 分类模型 [`ABCwewe/wuwa_playable_character_identifier`](https://huggingface.co/ABCwewe/wuwa_playable_character_identifier)：权重以 **CC BY-NC 4.0** 提供，**仅供研究与个人用途，禁止商业使用**。
 - 《鸣潮》（Wuthering Waves）及相关角色版权归 **KURO GAMES** 所有；本插件为非官方粉丝项目。
 - 本插件**不分发任何模型权重**：全部在运行时从 HuggingFace 下载到 `data/plugin_data/astrbot_plugin_character_identifier/models/`。
