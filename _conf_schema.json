@@ -1,0 +1,78 @@
+{
+  "enabled": {"description": "启用插件", "type": "bool", "default": true},
+
+  "models": {
+    "description": "模型",
+    "type": "object",
+    "items": {
+      "detector": {"description": "检测模型", "type": "string",
+                   "options": ["person_detect_v1.1_n"], "default": "person_detect_v1.1_n"},
+      "classifier": {"description": "角色识别模型", "type": "string",
+                     "options": ["wuwa_mnv4l_448_int8", "wuwa_mnv4s_384_fp32"],
+                     "default": "wuwa_mnv4l_448_int8",
+                     "hint": "l_448_int8 精度优先；s_384_fp32 更快更小"},
+      "preprocess_backend": {"description": "分类器预处理后端", "type": "string",
+                             "options": ["opencv", "pillow"], "default": "opencv",
+                             "hint": "pillow 与训练口径逐位一致，作为兜底"},
+      "check_update": {"description": "后台检查 latest 模型更新", "type": "bool", "default": false},
+      "hf_endpoint": {"description": "HuggingFace 地址（可填镜像）", "type": "string",
+                      "default": "https://huggingface.co"},
+      "hf_token": {"description": "HF Token（私有库才需要）", "type": "string",
+                   "default": "", "secret": true},
+      "offline_mode": {"description": "离线模式（不下载，仅用本地模型）", "type": "bool", "default": false}
+    }
+  },
+
+  "runtime": {
+    "description": "运行时与内存",
+    "type": "object",
+    "items": {
+      "resident": {"description": "模型常驻内存", "type": "bool", "default": false,
+                   "hint": "关闭时空闲超时后自动卸载，下次请求重新加载"},
+      "idle_timeout_sec": {"description": "空闲卸载超时（秒）", "type": "int", "default": 300,
+                           "hint": "仅在不常驻时生效，最小 30"},
+      "threads": {"description": "推理线程数", "type": "int", "default": 2},
+      "max_concurrency": {"description": "最大并发推理数", "type": "int", "default": 1},
+      "low_memory": {"description": "低内存模式", "type": "bool", "default": true,
+                     "hint": "关闭 ORT 内存池，内存更低、略慢"},
+      "infer_timeout": {"description": "单次处理超时（秒）", "type": "int", "default": 15}
+    }
+  },
+
+  "detect": {
+    "description": "检测",
+    "type": "object",
+    "items": {
+      "det_imgsz": {"description": "检测输入尺寸", "type": "int", "default": 640},
+      "det_conf": {"description": "检测置信度阈值", "type": "float", "default": 0.327},
+      "nms_iou": {"description": "NMS IoU 阈值", "type": "float", "default": 0.5},
+      "max_persons": {"description": "每图最多处理角色数", "type": "int", "default": 8},
+      "min_box_px": {"description": "最小框边长（像素）", "type": "int", "default": 24}
+    }
+  },
+
+  "annotate": {
+    "description": "标注与注入",
+    "type": "object",
+    "items": {
+      "label_mode": {"description": "图上标签", "type": "string",
+                     "options": ["index", "name"], "default": "index",
+                     "hint": "name 需要字体文件以显示中日文"},
+      "font_path": {"description": "字体文件路径（label_mode=name）", "type": "string", "default": ""},
+      "out_max_side": {"description": "标注图长边上限", "type": "int", "default": 1280},
+      "max_images": {"description": "每条消息最多处理图片数", "type": "int", "default": 3},
+      "temp_text": {"description": "说明文字仅本轮有效（不入历史）", "type": "bool", "default": false},
+      "show_top5_for_unknown": {"description": "未识别时附带近邻候选（调试）", "type": "bool", "default": false},
+      "cache_keep_days": {"description": "标注图保留天数", "type": "int", "default": 7}
+    }
+  },
+
+  "scope": {
+    "description": "作用范围",
+    "type": "object",
+    "items": {
+      "session_whitelist": {"description": "仅这些会话生效（留空=全部）", "type": "list", "default": []},
+      "session_blacklist": {"description": "这些会话不生效", "type": "list", "default": []}
+    }
+  }
+}

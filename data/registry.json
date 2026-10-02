@@ -1,0 +1,36 @@
+{
+  "person_detect_v1.1_n": {
+    "kind": "detector",
+    "repo_id": "deepghs/anime_person_detection",
+    "ref": "main",
+    "files": {
+      "model": "person_detect_v1.1_n/model.onnx"
+    },
+    "preprocess": "yolo_letterbox",
+    "scope_note": ""
+  },
+  "wuwa_mnv4l_448_int8": {
+    "kind": "classifier",
+    "repo_id": "ABCwewe/wuwa_playable_character_identifier",
+    "ref": "main",
+    "files": {
+      "model": "latest/mnv4l_448/wuwa_playable_character_latest_mnv4l_448_int8.onnx",
+      "prototypes": "latest/mnv4l_448/prototypes_int8.npz"
+    },
+    "display_names": "class_names_zh.yaml",
+    "preprocess": "wuwa_letterbox_512",
+    "scope_note": "《鸣潮》可操控角色"
+  },
+  "wuwa_mnv4s_384_fp32": {
+    "kind": "classifier",
+    "repo_id": "ABCwewe/wuwa_playable_character_identifier",
+    "ref": "main",
+    "files": {
+      "model": "latest/mnv4s_384/wuwa_playable_character_latest_mnv4s_384.onnx",
+      "prototypes": "latest/mnv4s_384/prototypes.npz"
+    },
+    "display_names": "class_names_zh.yaml",
+    "preprocess": "wuwa_letterbox_512",
+    "scope_note": "《鸣潮》可操控角色"
+  }
+}
