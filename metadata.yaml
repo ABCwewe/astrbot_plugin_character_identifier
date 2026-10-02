@@ -2,7 +2,7 @@ name: astrbot_plugin_character_identifier # 插件唯一识别名，以 astrbot_
 display_name: 鸣潮角色识别器 # 用于展示的名字（需要版本 >= v4.5.0，低版本不会报错）
 short_desc: LLM 识图前自动检测并标注《鸣潮》角色
 desc: 用于辅助LLM识别鸣潮角色：在 LLM 请求前对消息图片做二次元人物检测与鸣潮可操控角色识别，将彩色框编号标注图与文字说明注入模型上下文
-version: v1.0.0 # 插件版本号。格式：v1.1.1 或者 v1.1
+version: v1.1.0 # 插件版本号。格式：v1.1.1 或者 v1.1
 author: ABCwewe # 作者
 repo: https://github.com/ABCwewe/astrbot_plugin_character_identifier # 插件的仓库地址
 astrbot_version: ">=4.24,<5" # mark_as_temp 需要 4.24.0
